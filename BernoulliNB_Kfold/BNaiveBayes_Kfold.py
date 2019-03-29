@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import nltk
 import re
 #nltk.download('stopwords')
-nltk.download('punkt')
+#nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
@@ -25,11 +25,11 @@ dataset = pd.read_csv('full-corpusf.csv', header=None, names=['Topic','Sentiment
 # convert label to a numerical variable
 dataset['label_num'] = dataset.Tweet.map({'positive':0,'negative':1, 'neutral':3, 'irrelevant':4})
 
-'''
+
 #Cleaning all tweets
 corpus = []
 for i in range(0,4134):
-    tweet = re.sub('[^a-zA-Z]]','', dataset['TweetText'][i])
+    tweet = re.sub('[^a-zA-Z]]',' ', dataset['Tweet'][i])
     tweet = tweet.lower()
     tweet = tweet.split()
     ps= PorterStemmer()
@@ -37,23 +37,13 @@ for i in range(0,4134):
     tweet = ' '.join(tweet)
     corpus.append(tweet)
 
-'''
 
-X = dataset.Tweet
-y = dataset.Sentiment
-#print(X.shape)
-#print(np.unique(y))
 
 from sklearn.feature_extraction.text import CountVectorizer
-vect =CountVectorizer(ngram_range=(1,2),
-                             stop_words='english')
-X_dtm = vect.fit_transform(X)
+vect =CountVectorizer(max_features=1500)
+X = vect.fit_transform(corpus).toarray()
+y = dataset.Sentiment
 
-
-from sklearn.feature_extraction.text import TfidfTransformer
-
-tfidf  = TfidfTransformer()
-X_tfidf = tfidf.fit_transform(X_dtm)
 
 #from sklearn.naive_bayes import GaussianNB
 #gaus = GaussianNB()
@@ -69,9 +59,9 @@ list_acc=[]
 list_recall=[]
 list_precision=[]
 kf=KFold(n_splits=10,shuffle=True)
-for train_index, test_index in kf.split(X_tfidf):
+for train_index, test_index in kf.split(X):
     
-    X_train, X_test = X_tfidf[train_index], X_tfidf[test_index]
+    X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
 
     # train the model using X_train_dtm
